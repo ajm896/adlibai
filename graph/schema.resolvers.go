@@ -6,10 +6,9 @@ package graph
 
 import (
 	"context"
-	"crypto/rand"
 	"fmt"
-	"time"
 
+	"github.com/ajm896/adlibai/db"
 	"github.com/ajm896/adlibai/graph/model"
 )
 
@@ -35,33 +34,23 @@ func (r *mutationResolver) SetAIMode(ctx context.Context, userID string, mode mo
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, username string, email string) (*model.User, error) {
-	db := r.DB.WithContext(ctx)
-	// Generate a random ID
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-	id := fmt.Sprintf("%x", b)
-	user := model.User{ID: id, Username: username, Email: email, CreatedAt: time.Now().String(), UpdatedAt: time.Now().String()}
-	db.Create(&user)
-	return &user, nil
+	var user db.User
+	user.Username = username
+	user.Email = email
+	r.DB.WithContext(ctx).Create(&user)
+	return user.ToQLUser(), nil
 }
 
 // Me is the resolver for the me field.
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	db := r.DB.WithContext(ctx)
-	var user model.User
-	db.Where("id = ?", "1").Find(&user)
-	return &user, nil
+	panic(fmt.Errorf("not implemented: Me - me"))
 }
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, error) {
-	db := r.DB.WithContext(ctx)
-	var user model.User
-	db.Where("id = ?", id).Find(&user)
-	return &user, nil
+	var user db.User
+	r.DB.WithContext(ctx).Find(&user, id)
+	return user.ToQLUser(), nil
 }
 
 // GetJournalEntries is the resolver for the getJournalEntries field.

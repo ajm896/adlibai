@@ -1,14 +1,17 @@
 package db
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
+
+	"github.com/ajm896/adlibai/graph/model"
 )
 
 type User struct {
 	gorm.Model
-	UserName string `gorm:"unique;not null"`
+	Username string `gorm:"unique;not null"`
 	Email    string `gorm:"unique;not null"`
 }
 
@@ -26,8 +29,6 @@ type NotificationPreferences struct {
 	gorm.Model
 	EmailNotifications bool `gorm:"not null"`
 	PushNotifications  bool `gorm:"not null"`
-	// If linked to user settings, you can add a foreign key:
-	// UserSettingsID uint
 }
 
 // Streak tracks a user's ongoing activity.
@@ -49,4 +50,19 @@ type UserSettings struct {
 	// Association to NotificationPreferences. Uncomment and adjust if needed.
 	// NotificationPreferencesID uint
 	// NotificationPreferences   NotificationPreferences `gorm:"foreignKey:NotificationPreferencesID"`
+}
+
+func (u *User) ToQLUser() *model.User {
+	return &model.User{
+		ID:       fmt.Sprint(u.ID),
+		Username: u.Username,
+		Email:    u.Email,
+	}
+}
+
+func FromQLUser(user *model.User) *User {
+	return &User{
+		Username: user.Username,
+		Email:    user.Email,
+	}
 }

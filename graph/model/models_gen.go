@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-
-	"gorm.io/gorm"
 )
 
 type JournalEntry struct {
@@ -37,7 +35,6 @@ type Streak struct {
 }
 
 type User struct {
-	gorm.Model
 	ID        string `json:"id"`
 	Username  string `json:"username"`
 	Email     string `json:"email"`
