@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/ajm896/adlibai/server"
+)
 
 func main() {
-    fmt.Println("AdlibAI is running!")
+	server.StartServer()
 }
