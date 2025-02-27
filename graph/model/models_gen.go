@@ -11,7 +11,6 @@ import (
 )
 
 type JournalEntry struct {
-	gorm.Model
 	ID          string `json:"id"`
 	User        *User  `json:"user"`
 	Content     string `json:"content"`
@@ -24,7 +23,6 @@ type Mutation struct {
 }
 
 type NotificationPreferences struct {
-	gorm.Model
 	EmailNotifications bool `json:"emailNotifications"`
 	PushNotifications  bool `json:"pushNotifications"`
 }
@@ -33,7 +31,6 @@ type Query struct {
 }
 
 type Streak struct {
-	gorm.Model
 	User        *User  `json:"user"`
 	Count       int32  `json:"count"`
 	LastUpdated string `json:"lastUpdated"`
@@ -49,7 +46,6 @@ type User struct {
 }
 
 type UserSettings struct {
-	gorm.Model
 	AiMode                  AIMode                   `json:"aiMode"`
 	NotificationPreferences *NotificationPreferences `json:"notificationPreferences"`
 }
