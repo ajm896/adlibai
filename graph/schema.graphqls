@@ -1,0 +1,56 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type User {
+  id: ID!
+  username: String!
+  email: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type UserSettings {
+  aiMode: AIMode!
+  notificationPreferences: NotificationPreferences!
+}
+
+enum AIMode {
+  MIMIC
+  SILLY
+}
+
+type NotificationPreferences {
+  emailNotifications: Boolean!
+  pushNotifications: Boolean!
+}
+
+type JournalEntry {
+  id: ID!
+  user: User!
+  content: String!
+  createdAt: String!
+  updatedAt: String!
+  aiGenerated: Boolean!
+}
+
+type Streak {
+  user: User!
+  count: Int!
+  lastUpdated: String!
+}
+
+type Query {
+  me: User
+  getUser(id: ID!): User
+  getJournalEntries(userId: ID!): [JournalEntry]
+  getStreak(userId: ID!): Streak
+}
+
+type Mutation {
+  createJournalEntry(userId: ID!, content: String!): JournalEntry
+  updateJournalEntry(id: ID!, content: String!): JournalEntry
+  deleteJournalEntry(id: ID!): Boolean
+  setAIMode(userId: ID!, mode: AIMode!): UserSettings
+  createUser(username: String!, email: String!): User
+}

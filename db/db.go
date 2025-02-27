@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ajm896/adlibai/models"
+	"github.com/ajm896/adlibai/graph/model"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // ConnectDB connects to the database
-
-// ConnectDB connects to the database
-func ConnectDB() *gorm.DB {
+func InitDB() *gorm.DB {
 	err := godotenv.Load()
 	if err != nil {
 		panic("Error loading .env file")
@@ -26,11 +25,11 @@ func ConnectDB() *gorm.DB {
 	port := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", host, user, password, dbname, port)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 
-	db.AutoMigrate(&models.User{})
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
+	db.AutoMigrate(&model.User{})
 	return db
 }
