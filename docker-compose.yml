@@ -11,5 +11,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  adlibai-server:
+    image: ghcr.io/ajm896/adlibai:latest
+    container_name: adlibai_app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
 volumes:
   postgres_data:

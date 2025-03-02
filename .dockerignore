@@ -1,0 +1,21 @@
+# Ignore the .git directory
+.git
+
+# Ignore the .vscode directory
+.vscode/
+
+# Ignore the node_modules directory
+node_modules/
+
+# Ignore the Dockerfile and docker-compose.yml
+Dockerfile
+docker-compose.yml
+
+# Ignore the Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
