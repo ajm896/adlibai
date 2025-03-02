@@ -6,7 +6,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/ajm896/adlibai/db/models"
 	"github.com/ajm896/adlibai/graph/model"
@@ -14,36 +13,30 @@ import (
 
 // CreateJournalEntry is the resolver for the createJournalEntry field.
 func (r *mutationResolver) CreateJournalEntry(ctx context.Context, userID string, content string) (*model.JournalEntry, error) {
-	panic(fmt.Errorf("not implemented: CreateJournalEntry - createJournalEntry"))
+	var journalEntry = models.NewJournalEntry(content, false, userID)
+	r.DB.WithContext(ctx).Create(&journalEntry)
+	return journalEntry.ToQLJournalEntry(), nil
 }
 
 // UpdateJournalEntry is the resolver for the updateJournalEntry field.
 func (r *mutationResolver) UpdateJournalEntry(ctx context.Context, id string, content string) (*model.JournalEntry, error) {
-	panic(fmt.Errorf("not implemented: UpdateJournalEntry - updateJournalEntry"))
+	r.DB.WithContext(ctx).Model(&models.JournalEntry{}).Where("id = ?", id).Update("content", content)
+	var journalEntry models.JournalEntry
+	r.DB.WithContext(ctx).Find(&journalEntry, id)
+	return journalEntry.ToQLJournalEntry(), nil
 }
 
 // DeleteJournalEntry is the resolver for the deleteJournalEntry field.
 func (r *mutationResolver) DeleteJournalEntry(ctx context.Context, id string) (*bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteJournalEntry - deleteJournalEntry"))
-}
-
-// SetAIMode is the resolver for the setAIMode field.
-func (r *mutationResolver) SetAIMode(ctx context.Context, userID string, mode model.AIMode) (*model.UserSettings, error) {
-	panic(fmt.Errorf("not implemented: SetAIMode - setAIMode"))
+	r.DB.WithContext(ctx).Delete(&models.JournalEntry{}, id)
+	return nil, nil
 }
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, username string, email string) (*model.User, error) {
-	var user models.User
-	user.Username = username
-	user.Email = email
+	var user = models.NewUser(username, email)
 	r.DB.WithContext(ctx).Create(&user)
 	return user.ToQLUser(), nil
-}
-
-// Me is the resolver for the me field.
-func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
-	panic(fmt.Errorf("not implemented: Me - me"))
 }
 
 // GetUser is the resolver for the getUser field.
@@ -53,14 +46,26 @@ func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, er
 	return user.ToQLUser(), nil
 }
 
-// GetJournalEntries is the resolver for the getJournalEntries field.
-func (r *queryResolver) GetJournalEntries(ctx context.Context, userID string) ([]*model.JournalEntry, error) {
-	panic(fmt.Errorf("not implemented: GetJournalEntries - getJournalEntries"))
+// GetUsers is the resolver for the getUsers field.
+func (r *queryResolver) GetUsers(ctx context.Context) ([]*model.User, error) {
+	var users []*models.User
+	r.DB.WithContext(ctx).Find(&users)
+	var qlUsers []*model.User
+	for _, user := range users {
+		qlUsers = append(qlUsers, user.ToQLUser())
+	}
+	return qlUsers, nil
 }
 
-// GetStreak is the resolver for the getStreak field.
-func (r *queryResolver) GetStreak(ctx context.Context, userID string) (*model.Streak, error) {
-	panic(fmt.Errorf("not implemented: GetStreak - getStreak"))
+// GetJournalEntries is the resolver for the getJournalEntries field.
+func (r *queryResolver) GetJournalEntries(ctx context.Context, userID string) ([]*model.JournalEntry, error) {
+	var journalEntries []*models.JournalEntry
+	r.DB.WithContext(ctx).Where("user_id = ?", userID).Find(&journalEntries)
+	var qlJournalEntries []*model.JournalEntry
+	for _, journalEntry := range journalEntries {
+		qlJournalEntries = append(qlJournalEntries, journalEntry.ToQLJournalEntry())
+	}
+	return qlJournalEntries, nil
 }
 
 // Mutation returns MutationResolver implementation.

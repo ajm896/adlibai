@@ -23,8 +23,12 @@ func (u *User) ToQLUser() *model.User {
 }
 
 func FromQLUser(user *model.User) *User {
+	return NewUser(user.Username, user.Email)
+}
+
+func NewUser(username, email string) *User {
 	return &User{
-		Username: user.Username,
-		Email:    user.Email,
+		Username: username,
+		Email:    email,
 	}
 }

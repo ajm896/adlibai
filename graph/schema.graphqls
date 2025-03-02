@@ -41,16 +41,14 @@ type Streak {
 }
 
 type Query {
-  me: User
   getUser(id: ID!): User
+  getUsers: [User]
   getJournalEntries(userId: ID!): [JournalEntry]
-  getStreak(userId: ID!): Streak
 }
 
 type Mutation {
   createJournalEntry(userId: ID!, content: String!): JournalEntry
   updateJournalEntry(id: ID!, content: String!): JournalEntry
   deleteJournalEntry(id: ID!): Boolean
-  setAIMode(userId: ID!, mode: AIMode!): UserSettings
   createUser(username: String!, email: String!): User
 }

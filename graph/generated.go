@@ -60,7 +60,6 @@ type ComplexityRoot struct {
 		CreateJournalEntry func(childComplexity int, userID string, content string) int
 		CreateUser         func(childComplexity int, username string, email string) int
 		DeleteJournalEntry func(childComplexity int, id string) int
-		SetAIMode          func(childComplexity int, userID string, mode model.AIMode) int
 		UpdateJournalEntry func(childComplexity int, id string, content string) int
 	}
 
@@ -71,9 +70,8 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetJournalEntries func(childComplexity int, userID string) int
-		GetStreak         func(childComplexity int, userID string) int
 		GetUser           func(childComplexity int, id string) int
-		Me                func(childComplexity int) int
+		GetUsers          func(childComplexity int) int
 	}
 
 	Streak struct {
@@ -100,14 +98,12 @@ type MutationResolver interface {
 	CreateJournalEntry(ctx context.Context, userID string, content string) (*model.JournalEntry, error)
 	UpdateJournalEntry(ctx context.Context, id string, content string) (*model.JournalEntry, error)
 	DeleteJournalEntry(ctx context.Context, id string) (*bool, error)
-	SetAIMode(ctx context.Context, userID string, mode model.AIMode) (*model.UserSettings, error)
 	CreateUser(ctx context.Context, username string, email string) (*model.User, error)
 }
 type QueryResolver interface {
-	Me(ctx context.Context) (*model.User, error)
 	GetUser(ctx context.Context, id string) (*model.User, error)
+	GetUsers(ctx context.Context) ([]*model.User, error)
 	GetJournalEntries(ctx context.Context, userID string) ([]*model.JournalEntry, error)
-	GetStreak(ctx context.Context, userID string) (*model.Streak, error)
 }
 
 type executableSchema struct {
@@ -207,18 +203,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteJournalEntry(childComplexity, args["id"].(string)), true
 
-	case "Mutation.setAIMode":
-		if e.complexity.Mutation.SetAIMode == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_setAIMode_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SetAIMode(childComplexity, args["userId"].(string), args["mode"].(model.AIMode)), true
-
 	case "Mutation.updateJournalEntry":
 		if e.complexity.Mutation.UpdateJournalEntry == nil {
 			break
@@ -257,18 +241,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetJournalEntries(childComplexity, args["userId"].(string)), true
 
-	case "Query.getStreak":
-		if e.complexity.Query.GetStreak == nil {
-			break
-		}
-
-		args, err := ec.field_Query_getStreak_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.GetStreak(childComplexity, args["userId"].(string)), true
-
 	case "Query.getUser":
 		if e.complexity.Query.GetUser == nil {
 			break
@@ -281,12 +253,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUser(childComplexity, args["id"].(string)), true
 
-	case "Query.me":
-		if e.complexity.Query.Me == nil {
+	case "Query.getUsers":
+		if e.complexity.Query.GetUsers == nil {
 			break
 		}
 
-		return e.complexity.Query.Me(childComplexity), true
+		return e.complexity.Query.GetUsers(childComplexity), true
 
 	case "Streak.count":
 		if e.complexity.Streak.Count == nil {
@@ -586,47 +558,6 @@ func (ec *executionContext) field_Mutation_deleteJournalEntry_argsID(
 	return zeroVal, nil
 }
 
-func (ec *executionContext) field_Mutation_setAIMode_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Mutation_setAIMode_argsUserID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["userId"] = arg0
-	arg1, err := ec.field_Mutation_setAIMode_argsMode(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["mode"] = arg1
-	return args, nil
-}
-func (ec *executionContext) field_Mutation_setAIMode_argsUserID(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
-		return ec.unmarshalNID2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Mutation_setAIMode_argsMode(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (model.AIMode, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("mode"))
-	if tmp, ok := rawArgs["mode"]; ok {
-		return ec.unmarshalNAIMode2githubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐAIMode(ctx, tmp)
-	}
-
-	var zeroVal model.AIMode
-	return zeroVal, nil
-}
-
 func (ec *executionContext) field_Mutation_updateJournalEntry_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -702,29 +633,6 @@ func (ec *executionContext) field_Query_getJournalEntries_args(ctx context.Conte
 	return args, nil
 }
 func (ec *executionContext) field_Query_getJournalEntries_argsUserID(
-	ctx context.Context,
-	rawArgs map[string]any,
-) (string, error) {
-	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-	if tmp, ok := rawArgs["userId"]; ok {
-		return ec.unmarshalNID2string(ctx, tmp)
-	}
-
-	var zeroVal string
-	return zeroVal, nil
-}
-
-func (ec *executionContext) field_Query_getStreak_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
-	var err error
-	args := map[string]any{}
-	arg0, err := ec.field_Query_getStreak_argsUserID(ctx, rawArgs)
-	if err != nil {
-		return nil, err
-	}
-	args["userId"] = arg0
-	return args, nil
-}
-func (ec *executionContext) field_Query_getStreak_argsUserID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (string, error) {
@@ -1320,64 +1228,6 @@ func (ec *executionContext) fieldContext_Mutation_deleteJournalEntry(ctx context
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_setAIMode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_setAIMode(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SetAIMode(rctx, fc.Args["userId"].(string), fc.Args["mode"].(model.AIMode))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.UserSettings)
-	fc.Result = res
-	return ec.marshalOUserSettings2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUserSettings(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_setAIMode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "aiMode":
-				return ec.fieldContext_UserSettings_aiMode(ctx, field)
-			case "notificationPreferences":
-				return ec.fieldContext_UserSettings_notificationPreferences(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type UserSettings", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_setAIMode_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createUser(ctx, field)
 	if err != nil {
@@ -1530,59 +1380,6 @@ func (ec *executionContext) fieldContext_NotificationPreferences_pushNotificatio
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_me(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Me(rctx)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_me(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "username":
-				return ec.fieldContext_User_username(ctx, field)
-			case "email":
-				return ec.fieldContext_User_email(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_User_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_User_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getUser(ctx, field)
 	if err != nil {
@@ -1647,6 +1444,59 @@ func (ec *executionContext) fieldContext_Query_getUser(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getUsers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getUsers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUsers(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getUsers(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_User_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getJournalEntries(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getJournalEntries(ctx, field)
 	if err != nil {
@@ -1707,66 +1557,6 @@ func (ec *executionContext) fieldContext_Query_getJournalEntries(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getJournalEntries_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_getStreak(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_getStreak(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetStreak(rctx, fc.Args["userId"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Streak)
-	fc.Result = res
-	return ec.marshalOStreak2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐStreak(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_getStreak(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "user":
-				return ec.fieldContext_Streak_user(ctx, field)
-			case "count":
-				return ec.fieldContext_Streak_count(ctx, field)
-			case "lastUpdated":
-				return ec.fieldContext_Streak_lastUpdated(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Streak", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_getStreak_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -4416,10 +4206,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteJournalEntry(ctx, field)
 			})
-		case "setAIMode":
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_setAIMode(ctx, field)
-			})
 		case "createUser":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createUser(ctx, field)
@@ -4510,25 +4296,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "me":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_me(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "getUser":
 			field := field
 
@@ -4548,6 +4315,25 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "getUsers":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUsers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "getJournalEntries":
 			field := field
 
@@ -4558,25 +4344,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getJournalEntries(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx,
-					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
-			}
-
-			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
-		case "getStreak":
-			field := field
-
-			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_getStreak(ctx, field)
 				return res
 			}
 
@@ -5521,13 +5288,6 @@ func (ec *executionContext) marshalOJournalEntry2ᚖgithubᚗcomᚋajm896ᚋadli
 	return ec._JournalEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOStreak2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐStreak(ctx context.Context, sel ast.SelectionSet, v *model.Streak) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Streak(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
 	if v == nil {
 		return nil, nil
@@ -5544,18 +5304,52 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOUserSettings2ᚖgithubᚗcomᚋajm896ᚋadlibaiᚋgraphᚋmodelᚐUserSettings(ctx context.Context, sel ast.SelectionSet, v *model.UserSettings) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._UserSettings(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

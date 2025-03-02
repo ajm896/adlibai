@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 
 	"gorm.io/gorm"
 
@@ -33,10 +34,14 @@ func FromQLJournalEntry(journalEntry *model.JournalEntry) *JournalEntry {
 	}
 }
 
-func (j *JournalEntry) New(content string, aiGenerated bool, user *User) *JournalEntry {
+// NewJournalEntry creates a new JournalEntry.
+func NewJournalEntry(content string, isPublic bool, userID string) *JournalEntry {
+	uid, err := strconv.ParseUint(userID, 10, 32)
+	if err != nil {
+		return nil
+	}
 	return &JournalEntry{
-		User:        *user,
-		Content:     content,
-		AiGenerated: aiGenerated,
+		Content: content,
+		UserID:  uint(uid),
 	}
 }
