@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ajm896/adlibai/db"
+	"github.com/ajm896/adlibai/db/models"
 	"github.com/ajm896/adlibai/graph/model"
 )
 
@@ -34,7 +34,7 @@ func (r *mutationResolver) SetAIMode(ctx context.Context, userID string, mode mo
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, username string, email string) (*model.User, error) {
-	var user db.User
+	var user models.User
 	user.Username = username
 	user.Email = email
 	r.DB.WithContext(ctx).Create(&user)
@@ -48,7 +48,7 @@ func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 
 // GetUser is the resolver for the getUser field.
 func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, error) {
-	var user db.User
+	var user models.User
 	r.DB.WithContext(ctx).Find(&user, id)
 	return user.ToQLUser(), nil
 }

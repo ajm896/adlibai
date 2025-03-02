@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ajm896/adlibai/db/models"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,6 +30,6 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		panic("Failed to connect to database!")
 	}
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&models.User{}, &models.JournalEntry{})
 	return db
 }
